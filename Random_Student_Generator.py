@@ -1,304 +1,158 @@
-# Random student generator
-# Jeff Mitchell
-# Version 1.8 19 July 2017
-# Takes a list of students and randomly selects the desired number from the list
-# Saves the output to a user-defined text document
-# Requires StudentDatabase.csv to be present in directory
+# Random Student Generator
+# Version 0.1 17 October 2018
+# Created by Jeff Mitchell
+# Takes a list of students and randomly selects the desired number of students
+# from the list
+
 
 import csv
+import custtools.admintools as ad
+import custtools.filetools as ft
 import random
+import sys
 
-# Initialise variables
-students = []
-studentIdList = []
-load = True
-saveName = ""
-studentDatabaseRaw = []
-studentDatabaseConverted = {}
-fileName = "StudentDatabase" #Student database file
 
-# Read the contents of the text file for Student ID's
-def LoadFile(loadName):
-    studentIdListTemp = []
-    try:
-        FO = open(loadName, "r")
-    except IOError:
-        print("\nSorry, that file does not exist")
-    else:
-        for line in FO:
-            studentIdListTemp.append(line.strip())
-        FO.close()
-        print("File is loaded")
-        date = studentIdListTemp[0]
-        sampler = studentIdListTemp[1]
-        standard = studentIdListTemp[2]
-        group = studentIdListTemp[3]
-        size = int(studentIdListTemp[4])
-        del studentIdListTemp[0:5]
-    return studentIdListTemp, date, sampler, standard, group, size
 
-# Load student database file into a list
-def loadStudents(fileName):
-    student_list = []
-    try:
-        file = open(fileName + '.csv', 'r')
-    except IOError:
-        print("The file does not exist. Check filename.")
-    else:
-        file.readline()
-        reader = csv.reader(file, delimiter=',', quotechar='"')
-        for row in reader:
-            student_list.append(row)
-        file.close()
-        print("Student Database loaded.")
-    return student_list
+def combine_names():
+    """Combine first and last name columns into one column"""
+    # To Be Written
+    print('\nFunction to be written')
+    return
 
-# get the length of a list
-def listSize(list):
-    length = len(list)
-    return length
+
+def generate_random_students():
+    """Generate a list of randomly selected students."""
+    # Confirm the required files are in place
+    required_files = ['Students File']
+    ad.confirm_files('Generate Random Students', required_files)
+    # Get name for Students File and then load
+    student_pool = ft.get_csv_fname_load('Students File')
+    print(student_pool)
+    # Get number of students to take from the sample
+    num_students = get_num_students(len(student_pool))
+    # Get required number of students from the pool and store in a list
+    sampled_students = get_sample(student_pool, num_students)
+    # Display pooled students
+    print('\nThe selected students are as follows:\n')
+    print("{:15} {}".format('Student ID', 'Name'))
+    for x in sampled_students:
+        print("{:15} {}".format(x[0], x[1]))
+    print('')
+    # Save results
+    headings = ['Student ID', 'Name']
+    f_name = 'Selected_students_'
+    ft.save_list_csv(sampled_students, headings, f_name)
     
-# Take a list and returns a list (allows a list to be created within a function)
-def makingList(studentIdList):
-    i = 0
-    available = []
-    while i < len(studentIdList):
-        available.append(studentIdList[i])
-        i += 1
-    return available
 
-# Convert to studentID and name
-def convertNames(student_list):
-    input_list = student_list
-    new_database = {}
-    t = tuple()
-    name = ''
-    i = 0
-    while i < len(input_list):
-        t = input_list[i]
-        key = t[0]
-        name = t[1] + ',' + t[2]
-        new_database[key] = name
-        i += 1
-    return new_database
-
-# Takes the list of students and returns a list of random ones (amount determined by size variable)
-def pickSample(studentIdList, size):
-    i = 0
-    localSample = makingList(studentIdList)
-    sampleList = []
-    while i < (size):
-        sampleLength = (len(localSample)-1)
-        j = random.randint(0, sampleLength)
-        value = localSample[j]
-        #print(value)
-        sampleList.append(value)
-        del localSample[j]
-        i +=1
-    sortedList = sorted(sampleList)
-    return sortedList
-
-# get the length of a list
-def listSize(list):
-    length = len(list)
-    return length
-
-# compare length of list
-def checkLength(size, supplied):
-    if size < supplied:
-        return 1
-    elif size == supplied:
-        print("They are the same size; just use the whole sample")
-        return 2
-    else:
-        return 3
-
-# Get the student's name from student database
-def getName(student_data, student):
-    #print("getName student value passed is: " + student)
-    name = str(student_data.get(student))
-    #print("getName student name is: " + name)
-    return name
-
-# Return a formatted string for student name and id for display
-def unpackDisplay(studentID, studentName):
-    firstName = getFirstName(studentName)
-    lastName = getLastName(studentName)
-    studentDetails = studentID + ' ' + firstName + ' ' + lastName
-    return studentDetails
+def get_num_students(num_in_pool):
+    """Get from user number of students to select.
     
-# Find the student's First Name (portion of string prior to ',')
-def getFirstName(student):
-    place = student.find(',')
-    studentFirstName = student[0:place]
-    return studentFirstName
+    Gets input from user for the number of students to select and makes sure
+    this number is less than the number of students in the sample pool.
     
-# Find the student's Last Name (portion of string after ',')
-def getLastName(student):
-    place = student.find(',')
-    place += 1
-    studentLastName = student[place:]
-    return studentLastName
-
-# Display on screen selected students
-def displayStudents(studentDatabaseConverted, selectedStudents):
-    i = 0
-    selectedStudentsList = []
-    while i < len(selectedStudents):
-        student = unpackDisplay(selectedStudents[i], getName(studentDatabaseConverted, selectedStudents[i]))
-        print(student)
-        selectedStudentsList.append(str(student))
-        i += 1
-    return selectedStudentsList
-
-# Package selected student data for csv file format
-def packageCSV(studentName):
-    firstName = getFirstName(studentName)
-    lastName = getLastName(studentName)
-    return firstName, lastName 
+    Args:
+        num_in_pool (int): Number of students in the sample pool.
         
-# Write student sample to csv file (not currently used)
-def writeStudentData(saveFile, student_data, students):
-    # Take students and turn into a list
-    i = 0
-    myList = []
-    while i < len(students):
-        firstName, lastName = packageCSV(getName(student_data, students[i]))
-        entry = students[i]
-        myList.append(entry)
-        myList.append(firstName)
-        myList.append(lastName)
-        i += 1
-    with open(saveFile + '.csv', 'w') as csv_file:
-        print(myList)
-        writer = csv.writer(csv_file, delimiter=',', quotechar='|', lineterminator='\n', quoting=csv.QUOTE_MINIMAL)     
-        for item in myList:
-            writer.writerow([item])
-
-# Program to run if sample size is less than size of list supplied
-def process(studentDatabaseConverted, date, sampler, standard, length, group, size, studentIdList, saveName):
-    sample = []
-    sampleToSave = []
-    print("\nDate: " + date)
-    print("Sampler: " + sampler)
-    print("The standard is: ", standard)
-    print("Length of supplied list is: ", length)
-    print("The group is: ", group)
-    print("Sample size is: ", size)
-    sample = pickSample(studentIdList, size)
-    print("\nThe selected students are: \n")
-    sampleToSave = displayStudents(studentDatabaseConverted, sample)
-    #printList(sample)
-    print("")
-    saveList(sampleToSave, date, sampler, standard, group, size, saveName)
-    print("List saved to: " + saveName)
-
-# check if they wish to sample for another standard
-def anotherStandard(saveName):
-    load_again = "" #reset to check if want to load another file
-    while load_again == "": #check if would like to load another file
-        load_again = input("\nDo you want to sample another standard? y/n: ")
-        if load_again != "y" and load_again != "n":
-            print("\nThat is not a valid answer! Please try again")
-            load_again = ""
-        elif load_again == "y":
-            keepSaveName = "" #use to check if they want to keep the same file name
-            while keepSaveName == "":
-                keepSaveName = input("Do you want to use the same save file? y/n: ")
-                if keepSaveName != "y" and keepSaveName != "n":
-                    print("\nThat is not a valid answer! Please try again")
-                    keepSaveName = ""
-                elif keepSaveName == "y":
-                    break
-                else: saveName = ""                    
-            return True, saveName
+    Returns:
+        num_students (int): Number of students to be selected.    
+    """
+    while True:
+        print('\nHow many students would you like to select? Max allowed is '
+              '{}: '.format(num_in_pool-1))
+        try:
+            num_students = int(input('Number of students: '))
+        except ValueError:
+            print('\nPlease enter a whole number less than {}'.format(
+                    num_in_pool))
         else:
-            return False, saveName
+            if num_students >= num_in_pool: # Too many students
+                print('\nThat is too many students! Please enter a whole '
+                      'number that is less than {}.'.format(num_in_pool))
+            elif num_students < 0: # Negative value provided
+                print('\nPlease enter a positive whole number that is less '
+                      'than {}.'.format(num_in_pool))
+            else:
+                return num_students
 
-# Print out items in a list
-def printList(list):
-    i = 0
-    length = listSize(list)
-    while i < length:
-        print(list[i])
-        i += 1
 
-# Save a list
-def saveList(selectedStudentsList, date, sampler, standard, group, size, saveName):
-    fo = open(saveName, "a")
-    fo.write("Date sampled: " + date + "\n")
-    fo.write("Sampler: " + sampler + "\n")
-    fo.write("Standard: " + standard + "\n")
-    fo.write("Group: " + group + "\n")
-    fo.write("Sample size: " + str(size) + "\n\n")
-    fo.write("The selected students are:\n\n")
-    list_save = ""
-    for item in selectedStudentsList:
-        list_save = list_save + str(item) + "\n"
-    list_save = list_save + "\n"
-
-    fo.write(list_save)
-    fo.close()
-
-# Find the student ID (portion of string prior to ',')
-def getID(student):
-    studentID = student.strip()
-    place = student.find(',')
-    studentID = student[0:place]
-    return student
+def get_sample(student_pool, num_students):
+    """Return list of randomly selected students.
     
-# Find the student name (portion of string after ',')
-def getDefinition(student):
-    studentName = student.strip()
-    place = student.find(',')
-    place += 1
-    studentName = student[place:]
-    return studentName
-
-# Create a dictionary with student ID numbers and names
-def defineStudents (studentList):
-    i = 0
-    listLength = listSize(studentList)
-    students = {}
-    tempKey = ""
-    tempDefinition = ""
-    while i < listLength:
-        tempKey = getID(studentList[i])
-        tempDefinition = getDefinition(studentList[i])
-        students[tempKey] = tempDefinition
-        i += 1
-    return students
-
-# Main program
-print("\n\n************=============================*************")
-print("\nRandom Student Generator version 1.8")
-print("Created by Jeff Mitchell, 2017")
-print("Randomly selects the desired number of students from a supplied list\n")
-
-# Load student database
-studentDatabaseRaw = loadStudents(fileName)
-studentDatabaseConverted = convertNames(studentDatabaseRaw)
-
-while load == True:
-    loadName = input("What file would you like to load? ") + ".txt"
-    if saveName == "":
-        saveName = input("What file would you like to save to? ") + ".txt"
-    studentIdList, date, sampler, standard, group, size = LoadFile(loadName)
-    length = listSize(studentIdList)
-    check = True
-    while check == True:
-        if checkLength(size, length) == 1:
-            process(studentDatabaseConverted, date, sampler, standard, length, group, size, studentIdList, saveName)
-            check = False
-        else:
-            print('''Sorry but you have not supplied enough Student ID's to process
-a sample. Please make sure the sample size is less than the size of the list
-that you are choosing from''')
-            check = False
-    repeat, saveName = anotherStandard(saveName);
-    if repeat == True:
-        load == True
+    Randomly selects the desired number of students from the student pool and
+    returns them as a list of Student ID + Name tuples.
+    
+    Args:
+        student_pool (list): List of Student ID and Name combinations.
+        num_students (int): Number of students to be sampled.
+        
+    Returns:
+        students (list): List of selected Student ID and Name combinations.
+    """
+    sample_pool = list(student_pool)
+    students = []
+    if num_students >= len(sample_pool) or num_students < 0:
+        # Catch invalid number of students
+        print('Invalid number of students requested.')
+        return ''
     else:
-        load = False
-input("\nPress ENTER to exit")
+        # Sample required number of students
+        i = 0
+        while i < num_students:
+            # Get length of sample pool for random range
+            sample_length = len(sample_pool)-1
+            # Select random student
+            j = random.randint(0, sample_length)
+            student = sample_pool[j]
+            # Add student to students list
+            students.append(student)
+            # Remove student from sample pool
+            del sample_pool[j]
+            i += 1
+        students = sorted(students)
+        return students      
+
+
+def main():
+    repeat = True
+    low = 1
+    high = 2
+    while repeat:
+        try_again = False
+        main_message()
+        try:
+            action = int(input('\nPlease enter the number for your '
+                               'selection --> '))
+        except ValueError:
+            print('Please enter a number between {} and {}.'.format(low, high))
+            try_again = True
+        else:
+            if int(action) < low or int(action) > high:
+                print('\nPlease select from the available options ({} - {})'
+                      .format(low, high))
+                try_again = True
+            elif action == low:
+                generate_random_students()
+            elif action == 2:
+                combine_names()
+            elif action == high:
+                print('\nIf you have generated any files, please find them '
+                      'saved to disk. Goodbye.')
+                sys.exit()
+        if not try_again:
+            repeat = ad.check_repeat()
+    print('\nPlease find your files saved to disk. Goodbye.')
     
+ 
+def main_message():
+    """Print the menu of options."""
+    print('\n\n*************==========================*****************')
+    print('\nRandom Student Generator version 0.1')
+    print('Created by Jeff Mitchell, 2018')
+    print('\nOptions:')
+    print('\n1. Generate Random Students')
+    print('2. Combine Student Names')
+    print('3. Exit')
+                
+                
+if __name__ == '__main__':
+    main()

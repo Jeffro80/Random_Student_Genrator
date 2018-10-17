@@ -5,17 +5,17 @@ of students.
 
 ## Inputs
 
-The app takes in .
+The app takes in a CSV file with a list of Student ID numbers and names.
 
 ## Outputs
 
-The app outputs .
+The app outputs a CSV file with the selected Students (ID numbers and names).
 
 ## Version
 
-Version Number 1.8  
+Version Number 0.1  
 
-App last updated 19 July 2017 
+App last updated 17 October 2018  
 Readme last updated 17 October 2018
 
 # Operation
@@ -30,15 +30,43 @@ dialog
 
 # Functions
 
+## Generate Random Students
+
+Creates a list of randomly selected students from a provided list. User determines the
+number of students to be selected.
+
+### Required Files
+
+- Students File
 
 # Files used
 
+## Students File
+
+### File Name
+
+students.csv
+
+### Contents
+
+List of students (Student ID and Name) to be selected from.
+
+### Structure
+
+CSV file with Student ID and Name (First + ' ' + Last) for each student in the sample
+pool.
+
+### Source
+
+User provided. 
 
 # Dependencies
 
 The following third-party libraries are imported and therefore are required for
 the app to run:
 
+- admintools from custtools
+- filetools from custtools
 
 # Development
 
@@ -48,6 +76,13 @@ the app to run:
 
 ## Current development step
 
+- Combine names function.
+
 ## Required development steps
 
+- Add function to combine first and last names into one column.
+
 ## Future additions
+
+- Add option to sort on Name
+- Save files as XLS
